@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <title>Gudang Barang - My Kasir</title>
+    <style>
+        :root {
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #172033;
+            background: #f3f6fb;
+            font-synthesis: none;
+            text-rendering: optimizeLegibility;
+        }
+        * { box-sizing: border-box; }
+        body { min-width: 320px; margin: 0; }
+        button, input { font: inherit; }
+        button { cursor: pointer; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px clamp(18px, 4vw, 52px); background: #0f172a; color: white; }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand-logo { display: block; width: 62px; height: 62px; flex: none; border-radius: 50%; object-fit: cover; background: white; }
+        .settings-button { display: grid; width: 34px; height: 34px; min-height: 34px; place-items: center; padding: 0; border: 1px solid #475569; border-radius: 50%; background: #1e293b; color: white; font-size: 16px; }
+        .settings-button:hover { background: #334155; }
+        .brand h1 { margin: 0; font-size: 20px; letter-spacing: -.4px; }
+        .brand p { margin: 3px 0 0; color: #a7b2c8; font-size: 12px; }
+        .clock { color: #dbe4f3; font-size: 13px; text-align: right; }
+        .topbar-actions { display: flex; align-items: center; gap: 12px; }
+        main { width: min(1200px, 100%); margin: 0 auto; padding: 28px clamp(16px, 3vw, 40px) 48px; }
+        .page-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+        .page-heading h2 { margin: 0; font-size: clamp(23px, 3vw, 30px); letter-spacing: -.8px; }
+        .page-heading p { margin: 7px 0 0; color: #64748b; font-size: 14px; }
+        .actions { display: flex; flex-wrap: wrap; gap: 9px; }
+        .panel { overflow: hidden; border: 1px solid #e2e8f0; border-radius: 16px; background: white; box-shadow: 0 5px 18px #0f172a08; }
+        .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+        .stat { padding: 17px 19px; border: 1px solid #e2e8f0; border-radius: 14px; background: white; }
+        .stat-label { color: #64748b; font-size: 12px; }
+        .stat-value { display: block; margin-top: 7px; font-size: 23px; font-weight: 800; }
+        .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px; border-bottom: 1px solid #edf0f5; }
+        .panel-head h3 { margin: 0; font-size: 16px; }
+        .search { width: min(360px, 100%); min-height: 42px; padding: 9px 12px; border: 1px solid #d9e1ec; border-radius: 9px; outline: none; background: white; color: #172033; }
+        .search:focus, input:focus { border-color: #22c55e; box-shadow: 0 0 0 3px #22c55e1c; }
+        button { min-height: 40px; padding: 9px 13px; border: 0; border-radius: 9px; background: #f1f5f9; color: #334155; font-size: 13px; font-weight: 700; transition: background .15s; }
+        button:hover { background: #e2e8f0; }
+        .primary { background: #16a34a; color: white; }
+        .primary:hover { background: #15803d; }
+        .danger { background: #fef2f2; color: #b91c1c; }
+        .danger:hover { background: #fee2e2; }
+        .table-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 13px 17px; border-bottom: 1px solid #edf0f5; text-align: left; }
+        th { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+        tr:last-child td { border-bottom: 0; }
+        .product-name { font-weight: 750; }
+        .stock { font-weight: 750; }
+        .stock-low { color: #c2410c; }
+        .stock-out { color: #b91c1c; }
+        .row-actions { display: flex; justify-content: end; gap: 7px; white-space: nowrap; }
+        td:last-child, th:last-child { text-align: right; }
+        .empty { padding: 48px 18px; color: #64748b; text-align: center; }
+        .status { min-height: 22px; padding: 8px 20px; color: #475569; font-size: 12px; }
+        .status.error { color: #b91c1c; }
+        .status.success { color: #15803d; }
+        dialog { width: min(400px, calc(100% - 28px)); padding: 0; border: 0; border-radius: 16px; box-shadow: 0 24px 80px #0f172a40; }
+        dialog::backdrop { background: #0f172a80; }
+        .dialog-body { padding: 20px; }
+        .dialog-body h3 { margin: 0 0 7px; }
+        .dialog-body p { margin: 0 0 16px; color: #64748b; font-size: 13px; }
+        .dialog-body label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 700; }
+        .dialog-body input { width: 100%; min-height: 42px; padding: 9px 12px; border: 1px solid #d9e1ec; border-radius: 9px; outline: none; }
+        .dialog-actions { display: flex; justify-content: end; gap: 8px; margin-top: 18px; }
+        .theme-setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .theme-setting-label { color: #334155; font-size: 12px; font-weight: 700; }
+        .theme-setting-button { min-width: 128px; }
+        body.dark-mode { background: #0b1220; color: #e2e8f0; color-scheme: dark; }
+        body.dark-mode .panel,
+        body.dark-mode .stat,
+        body.dark-mode dialog { border-color: #334155; background: #172033; color: #e2e8f0; }
+        body.dark-mode .page-heading p,
+        body.dark-mode .stat-label,
+        body.dark-mode th,
+        body.dark-mode .dialog-body p { color: #94a3b8; }
+        body.dark-mode .theme-setting-label { color: #cbd5e1; }
+        body.dark-mode .search,
+        body.dark-mode .dialog-body input { border-color: #475569; background: #0f172a; color: #f1f5f9; }
+        body.dark-mode .panel-head,
+        body.dark-mode th,
+        body.dark-mode td { border-color: #334155; }
+        body.dark-mode button:not(.primary):not(.danger):not(.settings-button) { border: 1px solid #475569; background: #1e293b; color: #e2e8f0; }
+        body.dark-mode button:not(.primary):not(.danger):not(.settings-button):hover { background: #334155; }
+        body.dark-mode .danger { border-color: #7f1d1d !important; background: #450a0a !important; color: #fecaca !important; }
+        @media (max-width: 680px) {
+            .topbar { padding: 14px 17px; }
+            .topbar-actions { gap: 8px; }
+            .clock { max-width: 125px; font-size: 10px; }
+            main { padding-top: 21px; }
+            .page-heading { align-items: start; flex-direction: column; }
+            .actions { width: 100%; }
+            .stats { gap: 8px; }
+            .stat { padding: 13px; }
+            .stat-value { font-size: 19px; }
+            .panel-head { align-items: start; flex-direction: column; padding: 15px; }
+            .search { width: 100%; }
+            th, td { padding: 11px 12px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <img class="brand-logo" src="assets/my-kasir-logo.png" alt="Logo My Kasir">
+            <div>
+                <h1>My Kasir</h1>
+                <p>Manajemen inventaris</p>
+            </div>
+        </div>
+        <div class="topbar-actions">
+            <div class="clock" id="clock"></div>
+            <button type="button" class="settings-button" id="settingsButton" aria-label="Pengaturan" title="Pengaturan">⚙</button>
+        </div>
+    </header>
+    <main>
+        <div class="page-heading">
+            <div>
+                <h2>Gudang Barang</h2>
+                <p>Semua produk yang ditambahkan di kasir tersimpan dan dikelola di sini.</p>
+            </div>
+            <div class="actions">
+                <button type="button" id="cashierButton">← Kembali ke Kasir</button>
+                <button class="primary" type="button" id="addProductButton">＋ Tambah Produk</button>
+            </div>
+        </div>
+
+        <section class="stats" aria-label="Ringkasan inventaris">
+            <div class="stat"><span class="stat-label">Jenis produk</span><strong class="stat-value" id="productCount">0</strong></div>
+            <div class="stat"><span class="stat-label">Total unit stok</span><strong class="stat-value" id="totalStock">0</strong></div>
+            <div class="stat"><span class="stat-label">Stok habis</span><strong class="stat-value" id="outOfStockCount">0</strong></div>
+        </section>
+
+        <section class="panel" aria-labelledby="inventoryTitle">
+            <div class="panel-head">
+                <h3 id="inventoryTitle">Daftar Inventaris</h3>
+                <input class="search" id="warehouseSearch" type="search" placeholder="Cari nama, kode barang, atau barcode..." aria-label="Cari barang di gudang">
+            </div>
+            <div class="status" id="status" role="status" aria-live="polite"></div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr><th>Nama produk</th><th>Kode barang</th><th>Barcode</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr>
+                    </thead>
+                    <tbody id="inventoryRows"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <dialog id="stockDialog">
+        <form id="stockForm">
+            <div class="dialog-body">
+                <h3 id="stockDialogTitle">Ubah stok</h3>
+                <p id="stockDialogDescription"></p>
+                <label for="stockInput">Jumlah stok</label>
+                <input id="stockInput" type="number" min="0" step="1" required>
+                <div class="dialog-actions">
+                    <button type="button" id="cancelStockButton">Batal</button>
+                    <button class="primary" type="submit">Simpan Stok</button>
+                </div>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="settingsDialog" aria-labelledby="settingsTitle">
+        <div class="dialog-body">
+            <h3 id="settingsTitle">Pengaturan</h3>
+            <div class="theme-setting">
+                <span class="theme-setting-label">Mode tampilan</span>
+                <button class="theme-setting-button" type="button" id="settingsThemeToggle" aria-pressed="false">🌙 Mode malam</button>
+            </div>
+            <div class="dialog-actions">
+                <button type="button" id="closeSettingsButton">Tutup</button>
+            </div>
+        </div>
+    </dialog>
+
+    <script>
+        (() => {
+            const STORAGE_KEY = "kasirku-products-v1";
+            const TRANSFER_PREFIX = "kasirku-transfer:";
+            const THEME_KEY = "kasirku-theme-v1";
+            const rupiah = new Intl.NumberFormat("id-ID", {
+                style: "currency",
+                currency: "IDR",
+                maximumFractionDigits: 0
+            });
+            const byId = (id) => document.getElementById(id);
+            const rows = byId("inventoryRows");
+            const status = byId("status");
+            const stockDialog = byId("stockDialog");
+            receiveTransferredProducts();
+            let products = loadProducts();
+            let editingProductId;
+
+            function applyTheme(isDark) {
+                document.body.classList.toggle("dark-mode", isDark);
+                byId("settingsThemeToggle").textContent = isDark ? "☀️ Mode terang" : "🌙 Mode malam";
+                byId("settingsThemeToggle").setAttribute("aria-pressed", String(isDark));
+            }
+
+            function loadTheme() {
+                try {
+                    applyTheme(localStorage.getItem(THEME_KEY) === "dark");
+                } catch (error) {
+                    console.error("Preferensi tema tidak dapat dibaca.", error);
+                    applyTheme(false);
+                }
+            }
+
+            function receiveTransferredProducts() {
+                if (!window.name.startsWith(TRANSFER_PREFIX)) return;
+                try {
+                    const transferredData = JSON.parse(window.name.slice(TRANSFER_PREFIX.length));
+                    const transferredProducts = Array.isArray(transferredData)
+                        ? transferredData
+                        : transferredData && transferredData.products;
+                    if (!Array.isArray(transferredProducts)) {
+                        throw new Error("Format data kiriman kasir tidak valid.");
+                    }
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(transferredProducts));
+                    if (!Array.isArray(transferredData) && ["dark", "light"].includes(transferredData.theme)) {
+                        localStorage.setItem(THEME_KEY, transferredData.theme);
+                    }
+                } catch (error) {
+                    console.error("Data dari kasir tidak dapat diterima.", error);
+                    setStatus(`Data dari kasir tidak dapat dimuat: ${error.message}`, "error");
+                } finally {
+                    window.name = "";
+                }
+            }
+
+            function prepareProductTransfer() {
+                const theme = document.body.classList.contains("dark-mode") ? "dark" : "light";
+                window.name = TRANSFER_PREFIX + JSON.stringify({ products, theme });
+            }
+
+            function loadProducts() {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (!stored) return [];
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (!Array.isArray(parsed)) throw new Error("Format data produk tidak valid.");
+                    return parsed.filter((product) =>
+                        product && typeof product.id === "string" &&
+                        typeof product.name === "string" &&
+                        typeof product.barcode === "string" &&
+                        (typeof product.code === "string" || product.code === undefined) &&
+                        Number.isFinite(product.price) &&
+                        Number.isInteger(product.stock) && product.stock >= 0
+                    );
+                } catch (error) {
+                    console.error("Data gudang tidak dapat dibaca.", error);
+                    setStatus(`Data produk tersimpan tidak dapat dibaca: ${error.message}`, "error");
+                    return [];
+                }
+            }
+
+            function saveProducts(nextProducts) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(nextProducts));
+            }
+
+            function escapeHtml(value) {
+                return String(value).replace(/[&<>"']/g, (character) => ({
+                    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+                })[character]);
+            }
+
+            function normalize(value) {
+                return String(value || "").trim().toLocaleLowerCase("id");
+            }
+
+            function setStatus(message, type = "") {
+                status.textContent = message;
+                status.classList.remove("error", "success");
+                if (type) status.classList.add(type);
+            }
+
+            function render() {
+                const query = normalize(byId("warehouseSearch").value);
+                const visibleProducts = products.filter((product) =>
+                    [product.name, product.code || "", product.barcode]
+                        .some((value) => normalize(value).includes(query))
+                );
+                byId("productCount").textContent = products.length;
+                byId("totalStock").textContent = products.reduce((total, product) => total + product.stock, 0);
+                byId("outOfStockCount").textContent = products.filter((product) => product.stock === 0).length;
+                rows.innerHTML = visibleProducts.length
+                    ? visibleProducts.map((product) => `
+                        <tr>
+                            <td><div class="product-name">${escapeHtml(product.name)}</div></td>
+                            <td>${escapeHtml(product.code || "—")}</td>
+                            <td>${product.barcode ? escapeHtml(product.barcode) : "—"}</td>
+                            <td>${rupiah.format(product.price)}</td>
+                            <td><span class="stock ${product.stock === 0 ? "stock-out" : product.stock <= 5 ? "stock-low" : ""}">${product.stock} unit</span></td>
+                            <td>
+                                <div class="row-actions">
+                                    <button type="button" data-edit="${escapeHtml(product.id)}">Ubah stok</button>
+                                    <button type="button" class="danger" data-delete="${escapeHtml(product.id)}">Hapus</button>
+                                </div>
+                            </td>
+                        </tr>`).join("")
+                    : `<tr><td colspan="6" class="empty">${query ? "Barang tidak ditemukan." : "Gudang masih kosong. Tambahkan produk dari halaman kasir."}</td></tr>`;
+            }
+
+            function openStockDialog(product) {
+                editingProductId = product.id;
+                byId("stockDialogTitle").textContent = "Ubah stok barang";
+                byId("stockDialogDescription").textContent = `${product.name} · Kode ${product.code || "—"}`;
+                byId("stockInput").value = product.stock;
+                stockDialog.showModal();
+                byId("stockInput").focus();
+                byId("stockInput").select();
+            }
+
+            byId("cashierButton").addEventListener("click", () => {
+                prepareProductTransfer();
+                window.location.href = "index.html";
+            });
+            byId("addProductButton").addEventListener("click", () => {
+                prepareProductTransfer();
+                window.location.href = "index.html#tambah-produk";
+            });
+            byId("settingsButton").addEventListener("click", () => {
+                byId("settingsThemeToggle").setAttribute("aria-pressed", String(document.body.classList.contains("dark-mode")));
+                byId("settingsDialog").showModal();
+            });
+            byId("closeSettingsButton").addEventListener("click", () => byId("settingsDialog").close());
+            byId("settingsThemeToggle").addEventListener("click", () => {
+                const isDark = !document.body.classList.contains("dark-mode");
+                try {
+                    localStorage.setItem(THEME_KEY, isDark ? "dark" : "light");
+                } catch (error) {
+                    setStatus(`Mode tampilan tidak dapat disimpan: ${error.message}`, "error");
+                    return;
+                }
+                applyTheme(isDark);
+            });
+            byId("warehouseSearch").addEventListener("input", render);
+            byId("cancelStockButton").addEventListener("click", () => stockDialog.close());
+            byId("stockForm").addEventListener("submit", (event) => {
+                event.preventDefault();
+                const stock = Number(byId("stockInput").value);
+                if (!Number.isInteger(stock) || stock < 0) {
+                    setStatus("Stok harus berupa bilangan bulat nol atau lebih.", "error");
+                    return;
+                }
+                const updatedProducts = products.map((product) =>
+                    product.id === editingProductId ? { ...product, stock } : product
+                );
+                try {
+                    saveProducts(updatedProducts);
+                } catch (error) {
+                    setStatus(`Perubahan stok tidak dapat disimpan: ${error.message}`, "error");
+                    return;
+                }
+                products = updatedProducts;
+                stockDialog.close();
+                render();
+                setStatus("Stok berhasil diperbarui.", "success");
+            });
+            rows.addEventListener("click", (event) => {
+                const editButton = event.target.closest("[data-edit]");
+                if (editButton) {
+                    const product = products.find((item) => item.id === editButton.dataset.edit);
+                    if (product) openStockDialog(product);
+                    return;
+                }
+                const deleteButton = event.target.closest("[data-delete]");
+                if (!deleteButton) return;
+                const product = products.find((item) => item.id === deleteButton.dataset.delete);
+                if (!product || !window.confirm(`Hapus "${product.name}" dari gudang?`)) return;
+                const updatedProducts = products.filter((item) => item.id !== product.id);
+                try {
+                    saveProducts(updatedProducts);
+                } catch (error) {
+                    setStatus(`Produk tidak dapat dihapus: ${error.message}`, "error");
+                    return;
+                }
+                products = updatedProducts;
+                render();
+                setStatus(`${product.name} berhasil dihapus dari gudang.`, "success");
+            });
+            window.addEventListener("storage", (event) => {
+                if (event.key === STORAGE_KEY) {
+                    products = loadProducts();
+                    render();
+                    setStatus("Data gudang diperbarui.", "success");
+                }
+            });
+            window.addEventListener("pageshow", () => {
+                if (!window.name.startsWith(TRANSFER_PREFIX)) return;
+                receiveTransferredProducts();
+                products = loadProducts();
+                render();
+            });
+            window.addEventListener("pagehide", prepareProductTransfer);
+
+            function updateClock() {
+                byId("clock").textContent = new Intl.DateTimeFormat("id-ID", {
+                    weekday: "long", day: "numeric", month: "long", year: "numeric",
+                    hour: "2-digit", minute: "2-digit"
+                }).format(new Date());
+            }
+
+            render();
+            loadTheme();
+            updateClock();
+            window.setInterval(updateClock, 60000);
+        })();
+    </script>
+</body>
+</html>

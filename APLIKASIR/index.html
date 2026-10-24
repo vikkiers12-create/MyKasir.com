@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <title>My Kasir - Aplikasi Kasir</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #172033;
+            background: #f3f6fb;
+            font-synthesis: none;
+            text-rendering: optimizeLegibility;
+        }
+
+        * { box-sizing: border-box; }
+        body { margin: 0; min-width: 320px; }
+        button, input { font: inherit; }
+        button { cursor: pointer; }
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px clamp(18px, 4vw, 52px);
+            background: #0f172a;
+            color: white;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand-logo { display: block; width: 62px; height: 62px; flex: none; border-radius: 50%; object-fit: cover; background: white; }
+        .brand h1 { margin: 0; font-size: 20px; letter-spacing: -.4px; }
+        .brand p { margin: 3px 0 0; color: #a7b2c8; font-size: 12px; }
+        .clock { color: #dbe4f3; font-size: 13px; text-align: right; }
+        .topbar-actions { display: flex; align-items: center; gap: 12px; }
+        .settings-button { display: grid; width: 34px; height: 34px; min-height: 34px; place-items: center; padding: 0; border: 1px solid #475569; border-radius: 50%; background: #1e293b; color: white; font-size: 16px; }
+        .settings-button:hover { background: #334155; }
+        main { width: min(1440px, 100%); margin: 0 auto; padding: 28px clamp(16px, 3vw, 40px) 48px; }
+        .page-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+        .heading-actions { display: flex; flex-wrap: wrap; gap: 9px; }
+        .page-heading h2 { margin: 0; font-size: clamp(23px, 3vw, 30px); letter-spacing: -.8px; }
+        .page-heading p { margin: 7px 0 0; color: #64748b; font-size: 14px; }
+        .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(330px, 400px); gap: 22px; align-items: start; }
+        .panel { border: 1px solid #e2e8f0; border-radius: 16px; background: white; box-shadow: 0 5px 18px #0f172a08; }
+        .products-panel { overflow: hidden; }
+        .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 19px 20px; border-bottom: 1px solid #edf0f5; }
+        .panel-head h3 { margin: 0; font-size: 16px; }
+        .product-count { color: #64748b; font-size: 11px; white-space: nowrap; }
+        .toolbar { display: flex; gap: 9px; }
+        .search-wrap { position: relative; flex: 1; }
+        .search-wrap input { width: 100%; padding-left: 38px; }
+        .suggestions { position: absolute; z-index: 5; top: calc(100% + 5px); right: 0; left: 0; max-height: 260px; overflow-y: auto; padding: 5px; border: 1px solid #e2e8f0; border-radius: 10px; background: white; box-shadow: 0 12px 30px #0f172a1a; }
+        .suggestions[hidden] { display: none; }
+        .suggestion-option { display: flex; width: 100%; min-height: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 10px; border-radius: 7px; background: white; text-align: left; }
+        .suggestion-option:hover, .suggestion-option[aria-selected="true"] { background: #f0fdf4; }
+        .suggestion-details { min-width: 0; }
+        .suggestion-name { display: block; overflow: hidden; color: #172033; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+        .suggestion-code { display: block; margin-top: 3px; color: #64748b; font-size: 10px; font-weight: 500; }
+        .suggestion-price { flex: none; color: #15803d; font-size: 11px; }
+        .search-icon { position: absolute; top: 50%; left: 13px; color: #94a3b8; transform: translateY(-50%); pointer-events: none; }
+        .toolbar { padding: 14px 20px 4px; }
+        input {
+            min-height: 42px;
+            padding: 9px 12px;
+            border: 1px solid #d9e1ec;
+            border-radius: 9px;
+            outline: none;
+            background: white;
+            color: #172033;
+        }
+        input:focus { border-color: #22c55e; box-shadow: 0 0 0 3px #22c55e1c; }
+        button {
+            min-height: 40px;
+            padding: 9px 13px;
+            border: 0;
+            border-radius: 9px;
+            background: #f1f5f9;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 700;
+            transition: background .15s, transform .15s;
+        }
+        button:hover { background: #e2e8f0; }
+        button:active { transform: translateY(1px); }
+        .primary { background: #16a34a; color: white; }
+        .primary:hover { background: #15803d; }
+        .dark-button { background: #172033; color: white; }
+        .dark-button:hover { background: #27364f; }
+        .danger { color: #b91c1c; background: #fef2f2; }
+        .danger:hover { background: #fee2e2; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 12px; padding: 16px 20px 20px; }
+        .product-card { display: flex; min-height: 150px; flex-direction: column; justify-content: space-between; padding: 15px; border: 1px solid #e5eaf1; border-radius: 13px; background: #fff; }
+        .product-card:hover { border-color: #86efac; box-shadow: 0 7px 20px #16a34a10; }
+        .product-name { margin: 0; font-size: 14px; font-weight: 750; overflow-wrap: anywhere; }
+        .product-barcode { display: block; margin-top: 6px; color: #94a3b8; font-size: 11px; }
+        .product-meta { display: flex; align-items: end; justify-content: space-between; gap: 8px; margin-top: 17px; }
+        .product-price { color: #15803d; font-size: 15px; font-weight: 800; }
+        .empty { grid-column: 1 / -1; padding: 45px 15px; color: #64748b; text-align: center; }
+        .cart { position: sticky; top: 18px; overflow: hidden; }
+        .cart-header { padding: 19px 20px 15px; border-bottom: 1px solid #edf0f5; }
+        .cart-title { display: flex; align-items: center; justify-content: space-between; }
+        .cart-title h3 { margin: 0; font-size: 16px; }
+        .count { display: grid; min-width: 25px; height: 25px; place-items: center; border-radius: 999px; background: #dcfce7; color: #15803d; font-size: 12px; font-weight: 800; }
+        .scan-row { display: flex; gap: 8px; margin-top: 14px; }
+        .scan-help { margin: 7px 0 0; color: #64748b; font-size: 11px; line-height: 1.5; }
+        .identifier-entry { position: relative; flex: 1; min-width: 0; }
+        .scan-row input { width: 100%; }
+        .cart-items { min-height: 150px; max-height: 340px; overflow: auto; padding: 8px 20px; }
+        .cart-empty { padding: 48px 10px; color: #94a3b8; font-size: 13px; text-align: center; }
+        .cart-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 13px 0; border-bottom: 1px solid #f1f5f9; }
+        .cart-item-name { overflow-wrap: anywhere; font-size: 13px; font-weight: 700; }
+        .cart-item-price { margin-top: 4px; color: #64748b; font-size: 12px; }
+        .cart-controls { display: flex; align-items: center; gap: 7px; }
+        .qty-button { display: grid; width: 27px; min-height: 27px; padding: 0; place-items: center; border: 1px solid #e2e8f0; background: white; }
+        .qty { min-width: 18px; font-size: 12px; font-weight: 800; text-align: center; }
+        .cart-summary { padding: 16px 20px 20px; border-top: 1px solid #edf0f5; background: #fbfcfe; }
+        .summary-line { display: flex; justify-content: space-between; gap: 10px; margin: 7px 0; color: #64748b; font-size: 13px; }
+        .summary-line.total { margin-top: 15px; padding-top: 14px; border-top: 1px dashed #d9e1ec; color: #172033; font-size: 15px; font-weight: 800; }
+        .checkout-button { width: 100%; margin-top: 12px; min-height: 46px; font-size: 14px; }
+        .status { min-height: 22px; padding: 3px 20px 8px; color: #475569; font-size: 12px; }
+        .status.error { color: #b91c1c; }
+        .status.success { color: #15803d; }
+        dialog { width: min(480px, calc(100% - 28px)); max-height: 90vh; padding: 0; border: 0; border-radius: 16px; box-shadow: 0 24px 80px #0f172a40; }
+        dialog::backdrop { background: #0f172a80; }
+        .dialog-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid #edf0f5; }
+        .dialog-head h3 { margin: 0; font-size: 17px; }
+        .dialog-body { padding: 18px 20px 20px; }
+        .settings-description { margin: 0 0 16px; color: #64748b; font-size: 13px; }
+        .theme-setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .theme-setting-label { color: #334155; font-size: 12px; font-weight: 700; }
+        .theme-setting-button { min-width: 128px; }
+        .payment-total { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 18px; padding: 14px; border-radius: 10px; background: #f0fdf4; color: #166534; font-weight: 800; }
+        .payment-total strong { font-size: 18px; }
+        .payment-change { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; color: #475569; font-size: 13px; }
+        .payment-change strong { color: #15803d; }
+        .payment-error { min-height: 18px; margin-top: 9px; color: #b91c1c; font-size: 12px; }
+        .receipt-dialog { width: min(440px, calc(100% - 28px)); }
+        .receipt-paper { padding: 22px; }
+        .receipt-store-name { width: 100%; margin-bottom: 4px; padding: 7px 9px; border: 1px dashed #cbd5e1; border-radius: 7px; color: #172033; font-size: 19px; font-weight: 800; text-align: center; }
+        .receipt-store-name:focus { border-color: #22c55e; outline: none; }
+        .receipt-tagline { margin: 0 0 4px; color: #64748b; font-size: 12px; text-align: center; }
+        .receipt-caption { margin: 0; color: #64748b; font-size: 12px; text-align: center; }
+        .receipt-meta { margin: 18px 0 12px; padding: 12px 0; border-top: 1px dashed #cbd5e1; border-bottom: 1px dashed #cbd5e1; color: #475569; font-size: 12px; line-height: 1.8; }
+        .receipt-items { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .receipt-items th, .receipt-items td { padding: 8px 0; border: 0; text-align: left; }
+        .receipt-items th { color: #64748b; font-size: 10px; }
+        .receipt-items td:last-child, .receipt-items th:last-child { text-align: right; }
+        .receipt-summary { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #cbd5e1; }
+        .receipt-line { display: flex; justify-content: space-between; gap: 10px; margin: 7px 0; color: #475569; font-size: 12px; }
+        .receipt-line.total { color: #172033; font-size: 15px; font-weight: 800; }
+        .receipt-thanks { margin: 18px 0 0; color: #64748b; font-size: 12px; text-align: center; }
+        .receipt-store-message { min-height: 16px; margin-top: 5px; color: #b91c1c; font-size: 11px; text-align: center; }
+        .receipt-actions { display: flex; justify-content: center; gap: 8px; padding: 0 20px 20px; }
+        @media print {
+            body * { visibility: hidden !important; }
+            #receiptDialog[open], #receiptDialog[open] * { visibility: visible !important; }
+            #receiptDialog[open] { position: absolute; inset: 0; width: 100%; max-width: none; max-height: none; margin: 0; overflow: visible; border-radius: 0; box-shadow: none; }
+            #receiptDialog::backdrop { background: white; }
+            .receipt-actions { display: none !important; }
+            .receipt-store-name { border-color: transparent; }
+        }
+        .field { margin-bottom: 14px; }
+        .field label { display: block; margin-bottom: 6px; color: #334155; font-size: 12px; font-weight: 700; }
+        .field input { width: 100%; }
+        .barcode-entry { display: flex; gap: 8px; }
+        .barcode-entry input { flex: 1; min-width: 0; }
+        .scanner { display: none; margin: 12px 0; }
+        .scanner video { display: block; width: 100%; max-height: 260px; border-radius: 10px; background: #0f172a; }
+        .scanner button { margin-top: 8px; }
+        .dialog-actions { display: flex; justify-content: end; gap: 8px; margin-top: 18px; }
+        .dialog-message { min-height: 18px; color: #64748b; font-size: 12px; }
+        body.dark-mode { background: #0b1220; color: #e2e8f0; color-scheme: dark; }
+        body.dark-mode .panel,
+        body.dark-mode .product-card,
+        body.dark-mode .suggestions,
+        body.dark-mode .suggestion-option,
+        body.dark-mode dialog { border-color: #334155; background: #172033; color: #e2e8f0; }
+        body.dark-mode .panel-head,
+        body.dark-mode .cart-header { border-color: #334155; }
+        body.dark-mode .page-heading p,
+        body.dark-mode .product-count,
+        body.dark-mode .product-barcode,
+        body.dark-mode .cart-item-price,
+        body.dark-mode .summary-line,
+        body.dark-mode .settings-description,
+        body.dark-mode .scan-help,
+        body.dark-mode .theme-setting-label,
+        body.dark-mode .field label,
+        body.dark-mode .dialog-message,
+        body.dark-mode .receipt-tagline,
+        body.dark-mode .receipt-caption,
+        body.dark-mode .receipt-meta,
+        body.dark-mode .receipt-line,
+        body.dark-mode .receipt-thanks,
+        body.dark-mode .suggestion-code { color: #94a3b8; }
+        body.dark-mode .product-name,
+        body.dark-mode .suggestion-name,
+        body.dark-mode .summary-line.total,
+        body.dark-mode .receipt-line.total,
+        body.dark-mode .receipt-store-name { color: #f1f5f9; }
+        body.dark-mode input { border-color: #475569; background: #0f172a; color: #f1f5f9; }
+        body.dark-mode button:not(.primary):not(.dark-button):not(.danger):not(.settings-button) { border: 1px solid #475569; background: #1e293b; color: #e2e8f0; }
+        body.dark-mode button:not(.primary):not(.dark-button):not(.danger):not(.settings-button):hover { background: #334155; }
+        body.dark-mode .suggestion-option:hover,
+        body.dark-mode .suggestion-option[aria-selected="true"] { background: #1e3a2b; }
+        body.dark-mode .cart-summary { border-color: #334155; background: #111827; }
+        body.dark-mode .cart-item,
+        body.dark-mode .receipt-meta,
+        body.dark-mode .receipt-summary { border-color: #475569; }
+        body.dark-mode .payment-total { background: #143321; color: #bbf7d0; }
+        body.dark-mode .payment-change { color: #cbd5e1; }
+        body.dark-mode .receipt-items th { color: #94a3b8; }
+        body.dark-mode .danger { border-color: #7f1d1d !important; background: #450a0a !important; color: #fecaca !important; }
+        body.dark-mode .count { background: #14532d; color: #bbf7d0; }
+        @media (max-width: 850px) {
+            .layout { grid-template-columns: minmax(0, 1fr) 330px; gap: 14px; }
+            .product-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); padding-right: 14px; padding-left: 14px; }
+            .panel-head, .toolbar { padding-right: 14px; padding-left: 14px; }
+        }
+        @media (max-width: 700px) {
+            .topbar { padding: 14px 17px; }
+            .topbar-actions { gap: 8px; }
+            .clock { font-size: 10px; }
+            .settings-button { min-height: 34px; padding: 6px 8px; font-size: 11px; }
+            main { padding-top: 21px; }
+            .layout { grid-template-columns: 1fr; }
+            .cart { position: static; grid-row: 1; }
+            .cart-items { max-height: 260px; }
+            .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .toolbar { flex-wrap: wrap; }
+            .toolbar .search-wrap { flex-basis: 100%; }
+        }
+        @media (max-width: 390px) {
+            .page-heading { align-items: start; flex-direction: column; }
+            .heading-actions { width: 100%; }
+            .product-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .product-card { min-height: 140px; padding: 11px; }
+            .scan-row { flex-wrap: wrap; }
+            .scan-row input { flex-basis: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <img class="brand-logo" src="assets/my-kasir-logo.png" alt="Logo My Kasir">
+            <div>
+                <h1>My Kasir</h1>
+                <p>Aplikasi kasir sederhana</p>
+            </div>
+        </div>
+        <div class="topbar-actions">
+            <div class="clock" id="clock"></div>
+            <button class="settings-button" type="button" id="settingsButton" aria-label="Pengaturan" title="Pengaturan">⚙</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="page-heading">
+            <div>
+                <h2>Kasir & Produk</h2>
+                <p>Kelola produk, pindai barcode, dan proses transaksi.</p>
+            </div>
+            <div class="heading-actions">
+                <button type="button" id="warehouseButton">▤ Gudang Barang</button>
+                <button class="primary" id="openAddButton">＋ Tambah Produk</button>
+            </div>
+        </div>
+
+        <div class="layout">
+            <section class="panel products-panel" aria-labelledby="productsTitle">
+                <div class="panel-head">
+                    <h3 id="productsTitle">Daftar Produk</h3>
+                    <span class="product-count" id="productCount">0 produk</span>
+                </div>
+                <div class="toolbar">
+                    <div class="search-wrap">
+                        <span class="search-icon" aria-hidden="true">⌕</span>
+                        <input id="productSearch" type="search" placeholder="Ketik huruf awal nama, kode, atau barcode..." aria-label="Cari produk" role="combobox" aria-autocomplete="list" aria-controls="productSuggestions" aria-expanded="false">
+                        <div class="suggestions" id="productSuggestions" role="listbox" aria-label="Saran produk" hidden></div>
+                    </div>
+                </div>
+                <div class="product-grid" id="productGrid"></div>
+            </section>
+
+            <aside class="panel cart" aria-labelledby="cartTitle">
+                <div class="cart-header">
+                    <div class="cart-title">
+                        <h3 id="cartTitle">Keranjang</h3>
+                        <span class="count" id="cartCount">0</span>
+                    </div>
+                    <form class="scan-row" id="barcodeForm">
+                        <div class="identifier-entry">
+                            <input id="checkoutBarcode" type="text" placeholder="Klik lalu scan barcode atau ketik kode barang" autocomplete="off" aria-label="Barcode atau kode barang untuk transaksi" role="combobox" aria-autocomplete="list" aria-controls="checkoutSuggestions" aria-expanded="false">
+                            <div class="suggestions" id="checkoutSuggestions" role="listbox" aria-label="Saran produk untuk transaksi" hidden></div>
+                        </div>
+                        <button class="dark-button" type="submit" aria-label="Cari kode barang atau barcode">Cari</button>
+                    </form>
+                    <p class="scan-help">Scanner USB/Bluetooth: klik kolom lalu scan; kode akan diproses otomatis jika scanner mengirim Enter. Atau gunakan kamera.</p>
+                    <button type="button" class="primary" id="checkoutScanButton" style="width:100%; margin-top:8px">▦ Scan dengan Kamera</button>
+                    <section class="scanner" id="checkoutScanner" aria-label="Pemindai barcode untuk transaksi">
+                        <video id="checkoutCamera" autoplay muted playsinline></video>
+                        <button type="button" id="stopCheckoutScanButton">Tutup kamera</button>
+                    </section>
+                </div>
+                <div class="status" id="checkoutStatus" role="status" aria-live="polite"></div>
+                <div class="cart-items" id="cartItems"></div>
+                <div class="cart-summary">
+                    <div class="summary-line"><span>Jumlah item</span><span id="itemCount">0</span></div>
+                    <div class="summary-line total"><span>Total</span><span id="cartTotal">Rp0</span></div>
+                    <button type="button" class="primary checkout-button" id="checkoutButton">Proses Pembayaran</button>
+                </div>
+            </aside>
+        </div>
+
+    </main>
+
+    <dialog id="productDialog">
+        <form id="productForm">
+            <div class="dialog-head">
+                <h3>Tambah Produk</h3>
+                <button type="button" id="closeDialogButton" aria-label="Tutup">✕</button>
+            </div>
+            <div class="dialog-body">
+                <div class="field">
+                    <label for="productName">Nama produk</label>
+                    <input id="productName" name="name" type="text" required maxlength="100" placeholder="Contoh: Kopi Susu">
+                </div>
+                <div class="field">
+                    <label for="productCode">Kode barang</label>
+                    <input id="productCode" name="code" type="text" required maxlength="80" placeholder="Contoh: BRG-001" autocomplete="off">
+                </div>
+                <div class="field">
+                    <label for="productBarcode">Barcode</label>
+                    <div class="barcode-entry">
+                        <input id="productBarcode" name="barcode" type="text" maxlength="80" placeholder="Scan atau ketik barcode" autocomplete="off">
+                        <button class="dark-button" type="button" id="productScanButton">▦ Kamera</button>
+                    </div>
+                    <p class="scan-help">Scanner USB/Bluetooth juga dapat digunakan: klik kolom barcode lalu scan.</p>
+                    <div class="scanner" id="scanner">
+                        <video id="camera" autoplay muted playsinline></video>
+                        <button type="button" id="stopScanButton">Tutup kamera</button>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="productPrice">Harga (Rp)</label>
+                    <input id="productPrice" name="price" type="number" min="0" step="1" required placeholder="Contoh: 15000">
+                </div>
+                <div class="field">
+                    <label for="productStock">Stok awal</label>
+                    <input id="productStock" name="stock" type="number" min="0" step="1" required placeholder="Contoh: 20">
+                </div>
+                <div class="dialog-message" id="dialogMessage" role="status" aria-live="polite"></div>
+                <div class="dialog-actions">
+                    <button type="button" id="cancelDialogButton">Batal</button>
+                    <button class="primary" type="submit">Simpan Produk</button>
+                </div>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="paymentDialog" aria-labelledby="paymentTitle">
+        <form id="paymentForm">
+            <div class="dialog-head">
+                <h3 id="paymentTitle">Perhitungan Kasir</h3>
+                <button type="button" id="closePaymentButton" aria-label="Tutup">✕</button>
+            </div>
+            <div class="dialog-body">
+                <div class="payment-total">
+                    <span>Total belanja</span>
+                    <strong id="paymentTotal">Rp0</strong>
+                </div>
+                <div class="field">
+                    <label for="cashReceived">Uang diterima (Rp)</label>
+                    <input id="cashReceived" name="cashReceived" type="number" min="0" step="1" required inputmode="numeric" placeholder="Masukkan jumlah uang">
+                </div>
+                <button type="button" id="exactCashButton">Uang pas</button>
+                <div class="payment-change">
+                    <span>Kembalian</span>
+                    <strong id="paymentChange">Rp0</strong>
+                </div>
+                <div class="payment-error" id="paymentError" role="status" aria-live="polite"></div>
+                <div class="dialog-actions">
+                    <button type="button" id="cancelPaymentButton">Batal</button>
+                    <button class="primary" id="confirmPaymentButton" type="submit">Selesaikan Pembayaran</button>
+                </div>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog class="receipt-dialog" id="receiptDialog" aria-labelledby="receiptStoreName">
+        <div class="receipt-paper">
+            <input class="receipt-store-name" id="receiptStoreName" type="text" maxlength="80" aria-label="Nama toko pada nota">
+            <p class="receipt-tagline" id="receiptTagline"></p>
+            <p class="receipt-caption">Nota Pembayaran</p>
+            <div class="receipt-meta">
+                <div>No. transaksi: <strong id="receiptTransactionId"></strong></div>
+                <div id="receiptDate"></div>
+            </div>
+            <table class="receipt-items">
+                <thead><tr><th>Barang</th><th>Qty</th><th>Subtotal</th></tr></thead>
+                <tbody id="receiptItems"></tbody>
+            </table>
+            <div class="receipt-summary">
+                <div class="receipt-line total"><span>Total</span><strong id="receiptTotal"></strong></div>
+                <div class="receipt-line"><span>Uang diterima</span><strong id="receiptCashReceived"></strong></div>
+                <div class="receipt-line"><span>Kembalian</span><strong id="receiptChange"></strong></div>
+            </div>
+            <p class="receipt-thanks">Terima kasih atas kunjungan Anda.</p>
+            <div class="receipt-store-message" id="receiptStoreMessage" role="status" aria-live="polite"></div>
+        </div>
+        <div class="receipt-actions">
+            <button type="button" id="closeReceiptButton">Tutup</button>
+            <button class="primary" type="button" id="printReceiptButton">Cetak Nota</button>
+        </div>
+    </dialog>
+
+    <dialog id="settingsDialog" aria-labelledby="settingsTitle">
+        <form id="settingsForm">
+            <div class="dialog-head">
+                <h3 id="settingsTitle">Pengaturan Toko</h3>
+                <button type="button" id="closeSettingsButton" aria-label="Tutup">✕</button>
+            </div>
+            <div class="dialog-body">
+                <p class="settings-description">Nama toko dan kata-kata sambutan ini akan ditampilkan pada nota pembayaran.</p>
+                <div class="field theme-setting">
+                    <span class="theme-setting-label">Mode tampilan</span>
+                    <button class="theme-setting-button" type="button" id="settingsThemeToggle" aria-pressed="false">🌙 Mode malam</button>
+                </div>
+                <div class="field">
+                    <label for="settingsStoreName">Nama toko</label>
+                    <input id="settingsStoreName" type="text" maxlength="80" required placeholder="Contoh: Toko Sejahtera">
+                </div>
+                <div class="field">
+                    <label for="settingsReceiptTagline">Text di bawah nama toko</label>
+                    <input id="settingsReceiptTagline" type="text" maxlength="120" placeholder="Contoh: Melayani dengan sepenuh hati">
+                </div>
+                <div class="dialog-message" id="settingsMessage" role="status" aria-live="polite"></div>
+                <div class="dialog-actions">
+                    <button type="button" id="cancelSettingsButton">Batal</button>
+                    <button class="primary" type="submit">Simpan Pengaturan</button>
+                </div>
+            </div>
+        </form>
+    </dialog>
+
+    <script>
+        (() => {
+            const STORAGE_KEY = "kasirku-products-v1";
+            const SALES_KEY = "kasirku-sales-v1";
+            const STORE_NAME_KEY = "kasirku-store-name-v1";
+            const RECEIPT_TAGLINE_KEY = "kasirku-receipt-tagline-v1";
+            const THEME_KEY = "kasirku-theme-v1";
+            const TRANSFER_PREFIX = "kasirku-transfer:";
+            const rupiah = new Intl.NumberFormat("id-ID", {
+                style: "currency",
+                currency: "IDR",
+                maximumFractionDigits: 0
+            });
+            const byId = (id) => document.getElementById(id);
+            const productGrid = byId("productGrid");
+            const cartItemsElement = byId("cartItems");
+            const productDialog = byId("productDialog");
+            const productForm = byId("productForm");
+            const productBarcodeInput = byId("productBarcode");
+            const productCodeInput = byId("productCode");
+            const checkoutBarcode = byId("checkoutBarcode");
+            const checkoutStatus = byId("checkoutStatus");
+            const dialogMessage = byId("dialogMessage");
+            const paymentDialog = byId("paymentDialog");
+            const paymentForm = byId("paymentForm");
+            const receiptDialog = byId("receiptDialog");
+            const settingsDialog = byId("settingsDialog");
+            const settingsForm = byId("settingsForm");
+            let storeName = loadStoreName();
+            let receiptTagline = loadReceiptTagline();
+            const scanner = byId("scanner");
+            const camera = byId("camera");
+            const checkoutScanner = byId("checkoutScanner");
+            const checkoutCamera = byId("checkoutCamera");
+            const cart = new Map();
+            receiveTransferredProducts();
+            let products = loadProducts();
+            let mediaStream;
+            let barcodeDetector;
+            let scanAnimation;
+            let scanInProgress = false;
+            let scanTarget;
+
+            function applyTheme(isDark) {
+                document.body.classList.toggle("dark-mode", isDark);
+                byId("settingsThemeToggle").textContent = isDark ? "☀️ Mode terang" : "🌙 Mode malam";
+                byId("settingsThemeToggle").setAttribute("aria-pressed", String(isDark));
+            }
+
+            function loadTheme() {
+                try {
+                    applyTheme(localStorage.getItem(THEME_KEY) === "dark");
+                } catch (error) {
+                    console.error("Preferensi tema tidak dapat dibaca.", error);
+                    applyTheme(false);
+                }
+            }
+
+            function loadStoreName() {
+                try {
+                    return localStorage.getItem(STORE_NAME_KEY) || "Nama Toko Anda";
+                } catch (error) {
+                    console.error("Nama toko tidak dapat dibaca.", error);
+                    return "Nama Toko Anda";
+                }
+            }
+
+            function loadReceiptTagline() {
+                try {
+                    return localStorage.getItem(RECEIPT_TAGLINE_KEY) || "Melayani dengan sepenuh hati";
+                } catch (error) {
+                    console.error("Kata-kata nota tidak dapat dibaca.", error);
+                    return "Melayani dengan sepenuh hati";
+                }
+            }
+
+            function saveStoreName(value) {
+                const updatedStoreName = value.trim();
+                if (!updatedStoreName) {
+                    throw new Error("Nama toko tidak boleh kosong.");
+                }
+                localStorage.setItem(STORE_NAME_KEY, updatedStoreName);
+                storeName = updatedStoreName;
+                return updatedStoreName;
+            }
+
+            function saveReceiptTagline(value) {
+                const updatedTagline = value.trim();
+                localStorage.setItem(RECEIPT_TAGLINE_KEY, updatedTagline);
+                receiptTagline = updatedTagline;
+                return updatedTagline;
+            }
+
+            function renderReceipt(sale) {
+                byId("receiptStoreName").value = storeName;
+                byId("receiptTagline").textContent = receiptTagline;
+                byId("receiptTransactionId").textContent = String(sale.id);
+                byId("receiptDate").textContent = new Intl.DateTimeFormat("id-ID", {
+                    dateStyle: "medium",
+                    timeStyle: "short"
+                }).format(new Date(sale.createdAt));
+                byId("receiptItems").innerHTML = sale.items.map((item) => `
+                    <tr>
+                        <td>${escapeHtml(item.name)}<br><span class="muted">${rupiah.format(item.price)} / item</span></td>
+                        <td>${item.quantity}</td>
+                        <td>${rupiah.format(item.price * item.quantity)}</td>
+                    </tr>`).join("");
+                byId("receiptTotal").textContent = rupiah.format(sale.total);
+                byId("receiptCashReceived").textContent = rupiah.format(sale.cashReceived);
+                byId("receiptChange").textContent = rupiah.format(sale.change);
+                byId("receiptStoreMessage").textContent = "";
+                receiptDialog.showModal();
+            }
+
+            function receiveTransferredProducts() {
+                if (!window.name.startsWith(TRANSFER_PREFIX)) return;
+                try {
+                    const transferredData = JSON.parse(window.name.slice(TRANSFER_PREFIX.length));
+                    const transferredProducts = Array.isArray(transferredData)
+                        ? transferredData
+                        : transferredData && transferredData.products;
+                    if (!Array.isArray(transferredProducts)) {
+                        throw new Error("Format data kiriman gudang tidak valid.");
+                    }
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(transferredProducts));
+                    if (!Array.isArray(transferredData) && ["dark", "light"].includes(transferredData.theme)) {
+                        localStorage.setItem(THEME_KEY, transferredData.theme);
+                    }
+                } catch (error) {
+                    console.error("Data dari gudang tidak dapat diterima.", error);
+                    setStatus(checkoutStatus, `Data dari gudang tidak dapat dimuat: ${error.message}`, "error");
+                } finally {
+                    window.name = "";
+                }
+            }
+
+            function prepareProductTransfer() {
+                const theme = document.body.classList.contains("dark-mode") ? "dark" : "light";
+                window.name = TRANSFER_PREFIX + JSON.stringify({ products, theme });
+            }
+
+            function loadProducts() {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (!stored) return [];
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (!Array.isArray(parsed)) throw new Error("Format data produk tidak valid.");
+                    return parsed.filter((product) =>
+                        product && typeof product.id === "string" &&
+                        typeof product.name === "string" &&
+                        typeof product.barcode === "string" &&
+                        (typeof product.code === "string" || product.code === undefined) &&
+                        Number.isFinite(product.price) && Number.isFinite(product.stock)
+                    );
+                } catch (error) {
+                    console.error("Data produk tidak dapat dibaca.", error);
+                    checkoutStatus.textContent = "Data produk tersimpan tidak dapat dibaca. Hapus data aplikasi atau periksa penyimpanan browser.";
+                    checkoutStatus.classList.add("error");
+                    return [];
+                }
+            }
+
+            function saveProducts() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+            }
+
+            function escapeHtml(value) {
+                return String(value).replace(/[&<>"']/g, (character) => ({
+                    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+                })[character]);
+            }
+
+            function updateSuggestions(input, list) {
+                const query = normalizeIdentifier(input.value);
+                const matches = query
+                    ? products.filter((product) => [
+                        product.name,
+                        product.code || "",
+                        product.barcode
+                    ].some((identifier) => normalizeIdentifier(identifier).startsWith(query))).slice(0, 7)
+                    : [];
+
+                list.innerHTML = matches.map((product) => `
+                    <button type="button" class="suggestion-option" role="option" aria-selected="false" id="${escapeHtml(list.id)}-${escapeHtml(product.id)}" data-suggestion="${escapeHtml(product.id)}">
+                        <span class="suggestion-details">
+                            <span class="suggestion-name">${escapeHtml(product.name)}</span>
+                            <span class="suggestion-code">${product.code ? `Kode: ${escapeHtml(product.code)}` : "Tanpa kode"}${product.barcode ? ` · Barcode: ${escapeHtml(product.barcode)}` : ""}</span>
+                        </span>
+                        <span class="suggestion-price">${rupiah.format(product.price)}</span>
+                    </button>`).join("");
+                list.hidden = matches.length === 0;
+                input.setAttribute("aria-expanded", String(matches.length > 0));
+                input.removeAttribute("aria-activedescendant");
+                list.dataset.activeIndex = "-1";
+            }
+
+            function hideSuggestions(input, list) {
+                list.hidden = true;
+                input.setAttribute("aria-expanded", "false");
+                input.removeAttribute("aria-activedescendant");
+                list.dataset.activeIndex = "-1";
+            }
+
+            function chooseSuggestion(input, list, product, onSelect) {
+                hideSuggestions(input, list);
+                onSelect(product);
+            }
+
+            function connectSuggestions(input, list, onSelect) {
+                input.addEventListener("keydown", (event) => {
+                    if (event.key === "Escape") {
+                        hideSuggestions(input, list);
+                        return;
+                    }
+                    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") {
+                        if (event.key === "Enter" && !list.hidden) {
+                            const options = [...list.querySelectorAll("[data-suggestion]")];
+                            if (options.length) {
+                                event.preventDefault();
+                                const activeIndex = Number(list.dataset.activeIndex);
+                                const selected = options[activeIndex >= 0 ? activeIndex : 0];
+                                const product = products.find((item) => item.id === selected.dataset.suggestion);
+                                if (product) chooseSuggestion(input, list, product, onSelect);
+                            }
+                        }
+                        return;
+                    }
+
+                    if (list.hidden) updateSuggestions(input, list);
+                    const options = [...list.querySelectorAll("[data-suggestion]")];
+                    if (!options.length) return;
+                    event.preventDefault();
+                    let activeIndex = Number(list.dataset.activeIndex);
+                    activeIndex = event.key === "ArrowDown"
+                        ? (activeIndex + 1) % options.length
+                        : (activeIndex <= 0 ? options.length - 1 : activeIndex - 1);
+                    list.dataset.activeIndex = String(activeIndex);
+                    options.forEach((option, index) => {
+                        const active = index === activeIndex;
+                        option.setAttribute("aria-selected", String(active));
+                        if (active) {
+                            input.setAttribute("aria-activedescendant", option.id);
+                            option.scrollIntoView({ block: "nearest" });
+                        }
+                    });
+                });
+
+                list.addEventListener("pointerdown", (event) => event.preventDefault());
+                list.addEventListener("click", (event) => {
+                    const option = event.target.closest("[data-suggestion]");
+                    if (!option) return;
+                    const product = products.find((item) => item.id === option.dataset.suggestion);
+                    if (product) chooseSuggestion(input, list, product, onSelect);
+                });
+            }
+
+            function renderProducts() {
+                const query = byId("productSearch").value.trim().toLocaleLowerCase("id");
+                const visibleProducts = products.filter((product) =>
+                    product.name.toLocaleLowerCase("id").includes(query) ||
+                    (product.code || "").toLocaleLowerCase("id").includes(query) ||
+                    product.barcode.toLocaleLowerCase("id").includes(query)
+                );
+                byId("productCount").textContent = `${products.length} produk`;
+                productGrid.innerHTML = visibleProducts.length
+                    ? visibleProducts.map((product) => `
+                        <article class="product-card">
+                            <div>
+                                <h4 class="product-name">${escapeHtml(product.name)}</h4>
+                                <span class="product-barcode">Kode: ${escapeHtml(product.code || "—")}</span>
+                                <span class="product-barcode">${product.barcode ? `Barcode: ${escapeHtml(product.barcode)}` : "Tanpa barcode"}</span>
+                            </div>
+                            <div class="product-meta">
+                                <span class="product-price">${rupiah.format(product.price)}</span>
+                            </div>
+                            <button type="button" data-add="${escapeHtml(product.id)}" ${product.stock < 1 ? "disabled" : ""} style="margin-top:12px">＋ Tambah ke keranjang</button>
+                        </article>`).join("")
+                    : `<div class="empty">${query ? "Produk tidak ditemukan." : "Belum ada produk. Tambahkan produk untuk mulai berjualan."}</div>`;
+
+
+                updateSuggestions(byId("productSearch"), byId("productSuggestions"));
+            }
+
+            function renderCart() {
+                const items = [...cart.values()];
+                const quantity = items.reduce((sum, item) => sum + item.quantity, 0);
+                const total = items.reduce((sum, item) => sum + item.quantity * item.product.price, 0);
+                byId("cartCount").textContent = quantity;
+                byId("itemCount").textContent = quantity;
+                byId("cartTotal").textContent = rupiah.format(total);
+                byId("checkoutButton").disabled = items.length === 0;
+                cartItemsElement.innerHTML = items.length
+                    ? items.map(({ product, quantity: count }) => `
+                        <div class="cart-item">
+                            <div>
+                                <div class="cart-item-name">${escapeHtml(product.name)}</div>
+                                <div class="cart-item-price">${rupiah.format(product.price)} / item</div>
+                            </div>
+                            <div class="cart-controls">
+                                <button type="button" class="qty-button" data-quantity="${escapeHtml(product.id)}" data-change="-1" aria-label="Kurangi ${escapeHtml(product.name)}">−</button>
+                                <span class="qty">${count}</span>
+                                <button type="button" class="qty-button" data-quantity="${escapeHtml(product.id)}" data-change="1" aria-label="Tambah ${escapeHtml(product.name)}">+</button>
+                            </div>
+                        </div>`).join("")
+                    : `<div class="cart-empty">Keranjang masih kosong.<br>Scan barcode atau pilih produk.</div>`;
+            }
+
+            function getCartTotal() {
+                return [...cart.values()].reduce((sum, item) => sum + item.quantity * item.product.price, 0);
+            }
+
+            function updatePaymentCalculation() {
+                const total = getCartTotal();
+                const cashReceived = Number(byId("cashReceived").value);
+                const isValidAmount = byId("cashReceived").value !== "" &&
+                    Number.isSafeInteger(cashReceived) && cashReceived >= 0;
+                byId("paymentChange").textContent = rupiah.format(
+                    isValidAmount ? Math.max(0, cashReceived - total) : 0
+                );
+                byId("confirmPaymentButton").disabled = !isValidAmount || cashReceived < total;
+                byId("paymentError").textContent = isValidAmount && cashReceived < total
+                    ? "Uang yang diterima belum mencukupi total belanja."
+                    : "";
+            }
+
+            function openPaymentDialog() {
+                if (!cart.size) {
+                    setStatus(checkoutStatus, "Keranjang masih kosong.", "error");
+                    return;
+                }
+                for (const { product, quantity } of cart.values()) {
+                    const latestProduct = products.find((item) => item.id === product.id);
+                    if (!latestProduct || latestProduct.stock < quantity) {
+                        setStatus(checkoutStatus, `Stok ${product.name} berubah atau tidak mencukupi. Periksa keranjang.`, "error");
+                        return;
+                    }
+                }
+                byId("paymentTotal").textContent = rupiah.format(getCartTotal());
+                byId("cashReceived").value = "";
+                byId("paymentError").textContent = "";
+                byId("paymentChange").textContent = rupiah.format(0);
+                byId("confirmPaymentButton").disabled = true;
+                paymentDialog.showModal();
+                byId("cashReceived").focus();
+            }
+
+            function completePayment(cashReceived) {
+                const total = getCartTotal();
+                if (!cart.size || !Number.isSafeInteger(cashReceived) || cashReceived < total) {
+                    byId("paymentError").textContent = "Pastikan uang diterima mencukupi total belanja.";
+                    updatePaymentCalculation();
+                    return;
+                }
+                for (const { product, quantity } of cart.values()) {
+                    const latestProduct = products.find((item) => item.id === product.id);
+                    if (!latestProduct || latestProduct.stock < quantity) {
+                        byId("paymentError").textContent = `Stok ${product.name} berubah atau tidak mencukupi.`;
+                        return;
+                    }
+                }
+                const sale = {
+                    id: Date.now(),
+                    createdAt: new Date().toISOString(),
+                    items: [...cart.values()].map(({ product, quantity }) => ({
+                        productId: product.id, name: product.name, price: product.price, quantity
+                    })),
+                    total,
+                    cashReceived,
+                    change: cashReceived - total
+                };
+                const updatedProducts = products.map((product) => {
+                    const item = cart.get(product.id);
+                    return item ? { ...product, stock: product.stock - item.quantity } : product;
+                });
+                const previousStoredProducts = localStorage.getItem(STORAGE_KEY);
+                try {
+                    const sales = JSON.parse(localStorage.getItem(SALES_KEY) || "[]");
+                    if (!Array.isArray(sales)) throw new Error("Format riwayat transaksi tidak valid.");
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProducts));
+                    try {
+                        localStorage.setItem(SALES_KEY, JSON.stringify([...sales, sale]));
+                    } catch (error) {
+                        if (previousStoredProducts === null) {
+                            localStorage.removeItem(STORAGE_KEY);
+                        } else {
+                            localStorage.setItem(STORAGE_KEY, previousStoredProducts);
+                        }
+                        throw error;
+                    }
+                } catch (error) {
+                    byId("paymentError").textContent = `Transaksi tidak dapat disimpan: ${error.message}`;
+                    return;
+                }
+
+                products = updatedProducts;
+                cart.clear();
+                paymentDialog.close();
+                renderProducts();
+                renderCart();
+                setStatus(checkoutStatus, `Pembayaran berhasil. Total ${rupiah.format(total)} · Kembalian ${rupiah.format(cashReceived - total)}.`, "success");
+                renderReceipt(sale);
+            }
+
+            function setStatus(element, message, type) {
+                element.textContent = message;
+                element.classList.remove("error", "success");
+                if (type) element.classList.add(type);
+            }
+
+            function addToCart(product) {
+                const current = cart.get(product.id);
+                if ((current ? current.quantity : 0) >= product.stock) {
+                    setStatus(checkoutStatus, `Stok ${product.name} tidak mencukupi.`, "error");
+                    return false;
+                }
+                cart.set(product.id, { product, quantity: current ? current.quantity + 1 : 1 });
+                renderCart();
+                setStatus(checkoutStatus, `${product.name} ditambahkan ke keranjang.`, "success");
+                return true;
+            }
+
+            function normalizeIdentifier(identifier) {
+                return identifier.trim().toLocaleLowerCase("id");
+            }
+
+            function findProductByIdentifier(identifier) {
+                const normalizedIdentifier = normalizeIdentifier(identifier);
+                return products.find((product) => normalizeIdentifier(product.barcode) === normalizedIdentifier) ||
+                    products.find((product) => product.code && normalizeIdentifier(product.code) === normalizedIdentifier);
+            }
+
+            function addByIdentifier(identifier, scanned = false) {
+                const normalizedIdentifier = identifier.trim();
+                if (!normalizedIdentifier) {
+                    setStatus(checkoutStatus, "Masukkan atau scan barcode atau kode barang terlebih dahulu.", "error");
+                    return;
+                }
+                const product = findProductByIdentifier(normalizedIdentifier);
+                if (!product) {
+                    const identifierType = scanned ? "barcode" : "kode barang";
+                    setStatus(checkoutStatus, `${identifierType} ${normalizedIdentifier} belum terdaftar. Lengkapi data produk baru.`, "error");
+                    openProductDialog(scanned ? { barcode: normalizedIdentifier } : { code: normalizedIdentifier });
+                    return;
+                }
+                addToCart(product);
+                checkoutBarcode.value = "";
+                checkoutBarcode.focus();
+            }
+
+            function openProductDialog({ barcode = "", code = "" } = {}) {
+                productForm.reset();
+                productBarcodeInput.value = barcode;
+                productCodeInput.value = code;
+                dialogMessage.textContent = "";
+                productDialog.showModal();
+                byId("productName").focus();
+            }
+
+            function stopScanner() {
+                if (scanAnimation) cancelAnimationFrame(scanAnimation);
+                scanAnimation = undefined;
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach((track) => track.stop());
+                    mediaStream = undefined;
+                }
+                camera.srcObject = null;
+                checkoutCamera.srcObject = null;
+                scanner.style.display = "none";
+                checkoutScanner.style.display = "none";
+                scanTarget = undefined;
+                scanInProgress = false;
+                byId("productScanButton").disabled = false;
+                byId("checkoutScanButton").disabled = false;
+            }
+
+            async function scanNextFrame() {
+                if (!mediaStream || !barcodeDetector || !scanTarget) return;
+                const activeCamera = scanTarget === "product" ? camera : checkoutCamera;
+                if (!scanInProgress && activeCamera.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+                    scanInProgress = true;
+                    try {
+                        const results = await barcodeDetector.detect(activeCamera);
+                        if (results.length && results[0].rawValue) {
+                            const barcode = results[0].rawValue;
+                            if (scanTarget === "product") {
+                                productBarcodeInput.value = barcode;
+                                dialogMessage.textContent = `Barcode ${barcode} berhasil dipindai.`;
+                                dialogMessage.classList.remove("error");
+                            } else {
+                                stopScanner();
+                                addByIdentifier(barcode, true);
+                                return;
+                            }
+                            stopScanner();
+                            return;
+                        }
+                    } catch (error) {
+                        const target = scanTarget;
+                        stopScanner();
+                        setStatus(target === "product" ? dialogMessage : checkoutStatus, `Gagal membaca barcode: ${error.message}`, "error");
+                        return;
+                    } finally {
+                        scanInProgress = false;
+                    }
+                }
+                scanAnimation = requestAnimationFrame(scanNextFrame);
+            }
+
+            async function startScanner(target) {
+                const messageElement = target === "product" ? dialogMessage : checkoutStatus;
+                if (!("BarcodeDetector" in window)) {
+                    setStatus(messageElement, "Pemindaian tidak didukung browser ini. Masukkan barcode secara manual.", "error");
+                    return;
+                }
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    setStatus(messageElement, "Akses kamera tidak tersedia. Gunakan HTTPS atau masukkan barcode secara manual.", "error");
+                    return;
+                }
+                const startButton = target === "product" ? byId("productScanButton") : byId("checkoutScanButton");
+                startButton.disabled = true;
+                scanTarget = target;
+                try {
+                    const formats = await BarcodeDetector.getSupportedFormats();
+                    const supportedFormats = formats.filter((format) => format !== "unknown");
+                    barcodeDetector = supportedFormats.length
+                        ? new BarcodeDetector({ formats: supportedFormats })
+                        : new BarcodeDetector();
+                    mediaStream = await navigator.mediaDevices.getUserMedia({
+                        audio: false,
+                        video: { facingMode: { ideal: "environment" } }
+                    });
+                    scanner.style.display = target === "product" ? "block" : "none";
+                    checkoutScanner.style.display = target === "checkout" ? "block" : "none";
+                    const activeCamera = target === "product" ? camera : checkoutCamera;
+                    activeCamera.srcObject = mediaStream;
+                    if (target === "product") {
+                        dialogMessage.textContent = "Arahkan kamera ke barcode produk.";
+                    } else {
+                        setStatus(checkoutStatus, "Arahkan kamera ke barcode produk.");
+                    }
+                    await activeCamera.play();
+                    scanNextFrame();
+                } catch (error) {
+                    stopScanner();
+                    setStatus(messageElement, `Kamera tidak dapat dibuka: ${error.message}`, "error");
+                }
+            }
+
+            productForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+                const name = byId("productName").value.trim();
+                const code = productCodeInput.value.trim();
+                const barcode = productBarcodeInput.value.trim();
+                const price = Number(byId("productPrice").value);
+                const stock = Number(byId("productStock").value);
+                if (!name || !code || !Number.isFinite(price) || price < 0 || !Number.isInteger(stock) || stock < 0) {
+                    dialogMessage.textContent = "Isi nama, kode barang, harga valid, dan stok berupa bilangan bulat nol atau lebih.";
+                    dialogMessage.classList.add("error");
+                    return;
+                }
+                const normalizedCode = normalizeIdentifier(code);
+                const normalizedBarcode = normalizeIdentifier(barcode);
+                if (products.some((product) => normalizeIdentifier(product.code || "") === normalizedCode)) {
+                    dialogMessage.textContent = "Kode barang tersebut sudah digunakan produk lain.";
+                    dialogMessage.classList.add("error");
+                    return;
+                }
+                if (barcode && products.some((product) => normalizeIdentifier(product.barcode) === normalizedBarcode)) {
+                    dialogMessage.textContent = "Barcode tersebut sudah terdaftar pada produk lain.";
+                    dialogMessage.classList.add("error");
+                    return;
+                }
+                if (barcode && products.some((product) =>
+                    normalizeIdentifier(product.code || "") === normalizedBarcode ||
+                    normalizeIdentifier(product.barcode) === normalizedCode
+                )) {
+                    dialogMessage.textContent = "Kode barang dan barcode tidak boleh sama dengan identitas produk lain.";
+                    dialogMessage.classList.add("error");
+                    return;
+                }
+                const product = {
+                    id: globalThis.crypto && typeof globalThis.crypto.randomUUID === "function"
+                        ? globalThis.crypto.randomUUID()
+                        : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+                    name,
+                    code,
+                    barcode,
+                    price,
+                    stock
+                };
+                products.push(product);
+                try {
+                    saveProducts();
+                } catch (error) {
+                    products.pop();
+                    dialogMessage.textContent = `Produk tidak dapat disimpan: ${error.message}`;
+                    dialogMessage.classList.add("error");
+                    return;
+                }
+                renderProducts();
+                productDialog.close();
+                setStatus(checkoutStatus, `${name} berhasil ditambahkan.`, "success");
+            });
+
+            byId("openAddButton").addEventListener("click", () => openProductDialog());
+            byId("settingsThemeToggle").addEventListener("click", () => {
+                const isDark = !document.body.classList.contains("dark-mode");
+                try {
+                    localStorage.setItem(THEME_KEY, isDark ? "dark" : "light");
+                } catch (error) {
+                    setStatus(checkoutStatus, `Mode tampilan tidak dapat disimpan: ${error.message}`, "error");
+                    return;
+                }
+                applyTheme(isDark);
+            });
+            byId("warehouseButton").addEventListener("click", () => {
+                prepareProductTransfer();
+                window.location.href = "gudang.html";
+            });
+            byId("closeDialogButton").addEventListener("click", () => productDialog.close());
+            byId("cancelDialogButton").addEventListener("click", () => productDialog.close());
+            byId("productScanButton").addEventListener("click", () => startScanner("product"));
+            byId("checkoutScanButton").addEventListener("click", () => startScanner("checkout"));
+            byId("stopScanButton").addEventListener("click", stopScanner);
+            byId("stopCheckoutScanButton").addEventListener("click", stopScanner);
+            byId("productSearch").addEventListener("input", renderProducts);
+            byId("checkoutBarcode").addEventListener("input", () => updateSuggestions(checkoutBarcode, byId("checkoutSuggestions")));
+            checkoutBarcode.addEventListener("keydown", (event) => {
+                if (event.key !== "Enter" || !checkoutBarcode.value.trim()) return;
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                hideSuggestions(checkoutBarcode, byId("checkoutSuggestions"));
+                addByIdentifier(checkoutBarcode.value, true);
+            });
+            productBarcodeInput.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") event.preventDefault();
+            });
+            connectSuggestions(byId("productSearch"), byId("productSuggestions"), (product) => {
+                byId("productSearch").value = product.code || product.name;
+                renderProducts();
+                byId("productSearch").focus();
+            });
+            connectSuggestions(checkoutBarcode, byId("checkoutSuggestions"), (product) => {
+                addToCart(product);
+                checkoutBarcode.value = "";
+                updateSuggestions(checkoutBarcode, byId("checkoutSuggestions"));
+                checkoutBarcode.focus();
+            });
+            byId("barcodeForm").addEventListener("submit", (event) => {
+                event.preventDefault();
+                addByIdentifier(checkoutBarcode.value);
+                hideSuggestions(checkoutBarcode, byId("checkoutSuggestions"));
+            });
+            byId("checkoutButton").addEventListener("click", openPaymentDialog);
+            byId("cashReceived").addEventListener("input", updatePaymentCalculation);
+            byId("exactCashButton").addEventListener("click", () => {
+                byId("cashReceived").value = String(getCartTotal());
+                updatePaymentCalculation();
+                byId("cashReceived").focus();
+            });
+            byId("closePaymentButton").addEventListener("click", () => paymentDialog.close());
+            byId("cancelPaymentButton").addEventListener("click", () => paymentDialog.close());
+            paymentForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+                completePayment(Number(byId("cashReceived").value));
+            });
+            byId("settingsButton").addEventListener("click", () => {
+                byId("settingsStoreName").value = storeName;
+                byId("settingsReceiptTagline").value = receiptTagline;
+                byId("settingsThemeToggle").setAttribute("aria-pressed", String(document.body.classList.contains("dark-mode")));
+                byId("settingsMessage").textContent = "";
+                byId("settingsMessage").classList.remove("error");
+                settingsDialog.showModal();
+                byId("settingsStoreName").focus();
+                byId("settingsStoreName").select();
+            });
+            byId("closeSettingsButton").addEventListener("click", () => settingsDialog.close());
+            byId("cancelSettingsButton").addEventListener("click", () => settingsDialog.close());
+            settingsForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+                try {
+                    saveStoreName(byId("settingsStoreName").value);
+                    saveReceiptTagline(byId("settingsReceiptTagline").value);
+                } catch (error) {
+                    byId("settingsMessage").textContent = `Pengaturan toko tidak dapat disimpan: ${error.message}`;
+                    byId("settingsMessage").classList.add("error");
+                    return;
+                }
+                byId("receiptStoreName").value = storeName;
+                byId("receiptTagline").textContent = receiptTagline;
+                settingsDialog.close();
+                setStatus(checkoutStatus, "Pengaturan toko berhasil disimpan dan akan tampil pada nota.", "success");
+            });
+            byId("receiptStoreName").addEventListener("change", () => {
+                try {
+                    saveStoreName(byId("receiptStoreName").value);
+                    byId("receiptStoreMessage").textContent = "Nama toko disimpan untuk nota berikutnya.";
+                    byId("receiptStoreMessage").style.color = "#15803d";
+                } catch (error) {
+                    byId("receiptStoreName").value = storeName;
+                    byId("receiptStoreMessage").textContent = `Nama toko tidak dapat disimpan: ${error.message}`;
+                    byId("receiptStoreMessage").style.color = "";
+                }
+            });
+            byId("closeReceiptButton").addEventListener("click", () => receiptDialog.close());
+            byId("printReceiptButton").addEventListener("click", () => window.print());
+
+            productGrid.addEventListener("click", (event) => {
+                const button = event.target.closest("[data-add]");
+                if (!button) return;
+                const product = products.find((item) => item.id === button.dataset.add);
+                if (product) addToCart(product);
+            });
+            cartItemsElement.addEventListener("click", (event) => {
+                const button = event.target.closest("[data-quantity]");
+                if (!button) return;
+
+                const productId = button.dataset.quantity;
+                const change = Number(button.dataset.change);
+                const current = cart.get(productId);
+                const product = products.find((item) => item.id === productId);
+                if (!current || !product || (change !== 1 && change !== -1)) return;
+
+                const nextQuantity = current.quantity + change;
+                if (nextQuantity > product.stock) {
+                    setStatus(checkoutStatus, `Stok ${product.name} tidak mencukupi.`, "error");
+                    return;
+                }
+                if (nextQuantity <= 0) {
+                    cart.delete(productId);
+                    setStatus(checkoutStatus, `${product.name} dihapus dari keranjang.`);
+                } else {
+                    cart.set(productId, { product, quantity: nextQuantity });
+                    setStatus(checkoutStatus, `${product.name}: ${nextQuantity} item, subtotal ${rupiah.format(product.price * nextQuantity)}.`, "success");
+                }
+                renderCart();
+            });
+            productDialog.addEventListener("close", stopScanner);
+            window.addEventListener("storage", (event) => {
+                if (event.key === STORAGE_KEY) {
+                    products = loadProducts();
+                    renderProducts();
+                    renderCart();
+                }
+            });
+            window.addEventListener("pageshow", () => {
+                if (!window.name.startsWith(TRANSFER_PREFIX)) return;
+                receiveTransferredProducts();
+                products = loadProducts();
+                renderProducts();
+                renderCart();
+            });
+            window.addEventListener("pagehide", prepareProductTransfer);
+            document.addEventListener("pointerdown", (event) => {
+                if (!byId("productSearch").contains(event.target) && !byId("productSuggestions").contains(event.target)) {
+                    hideSuggestions(byId("productSearch"), byId("productSuggestions"));
+                }
+                if (!checkoutBarcode.contains(event.target) && !byId("checkoutSuggestions").contains(event.target)) {
+                    hideSuggestions(checkoutBarcode, byId("checkoutSuggestions"));
+                }
+            });
+            window.addEventListener("pagehide", stopScanner);
+
+            function updateClock() {
+                byId("clock").textContent = new Intl.DateTimeFormat("id-ID", {
+                    weekday: "long", day: "numeric", month: "long", year: "numeric",
+                    hour: "2-digit", minute: "2-digit"
+                }).format(new Date());
+            }
+
+            renderProducts();
+            renderCart();
+            loadTheme();
+            if (window.location.hash === "#tambah-produk") {
+                openProductDialog();
+            }
+            updateClock();
+            window.setInterval(updateClock, 60000);
+        })();
+    </script>
+</body>
+</html>
